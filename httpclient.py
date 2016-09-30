@@ -32,6 +32,8 @@ class HTTPResponse(object):
     def __init__(self, code=200, body=""):
         self.code = code
         self.body = body
+    # def __str__(self):
+    #     return self.code + "\r\n" + self.body
 
 class HTTPClient(object):
     #def get_host_port(self,url):
@@ -51,13 +53,26 @@ class HTTPClient(object):
         return None
 
     def get_code(self, data):
-        return None
+        try:
+            code = int(data.split(" ")[1])
+        except:
+            code = 400
+
+        return code
 
     def get_headers(self,data):
-        return None
+        try:
+            headers = data.split("\r\n\r\n")[0]
+        except:
+            headers = ""
+        return headers
 
     def get_body(self, data):
-        return None
+        try:
+            body = data.split("\r\n\r\n")[1]
+        except:
+            body = ""
+        return body
 
     # read everything from the socket
     def recvall(self, sock):
@@ -72,19 +87,25 @@ class HTTPClient(object):
         return str(buffer)
 
     def GET(self, url, args=None):
-        parsed_url = urlparse(url)
+        # TODO: Fix this. Had trouble with Python "if not" concept
+        if  (url.startswith("http://") or url.startswith("https://")):
+            parsed_url = urlparse(url)
+        else:
+             url = "http://" + url
+             parsed_url = urlparse(url)
 
         self.connect(parsed_url.hostname, parsed_url.port)
 
-        HTTP_request = "GET " + parsed_url.path + " HTTP/1.1\r\nHost: " + parsed_url.hostname + "\r\nConnection: close\r\n\r\n"
+        file = parsed_url.path
+        if file=="":
+            file = "/"
 
-        print(">>>GET HTTP_request<<<\r\n" + HTTP_request)
+        HTTP_request = "GET " + file + " HTTP/1.1\r\nHost:" + parsed_url.hostname + "\r\nAccept: */*\r\nConnection: Close\r\n\r\n"
 
         self.clientSocket.send(HTTP_request)
 
         received = self.recvall(self.clientSocket)
 
-        print(">>>GET received<<<\r\n" + received)
         code = self.get_code(received)
         body = self.get_body(received)
 
