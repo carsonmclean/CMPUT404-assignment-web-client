@@ -33,7 +33,7 @@ class HTTPResponse(object):
         self.code = code
         self.body = body
     # def __str__(self):
-    #     return self.code + "\r\n" + self.body
+    #     return self.body
 
 class HTTPClient(object):
     #def get_host_port(self,url):
@@ -108,6 +108,7 @@ class HTTPClient(object):
         self.clientSocket.send(HTTP_request)
 
         received = self.recvall(self.clientSocket)
+        print(received)
 
         code = self.get_code(received)
         body = self.get_body(received)
@@ -143,11 +144,11 @@ class HTTPClient(object):
                         "Content-Type: " + content_type + "\r\n"
                         "Connection: Close\r\n\r\n")
         HTTP_request += encoded_args
-        print(HTTP_request)
 
         self.clientSocket.send(HTTP_request)
 
         received = self.recvall(self.clientSocket)
+        print(received)
 
         code = self.get_code(received)
         body = self.get_body(received)
