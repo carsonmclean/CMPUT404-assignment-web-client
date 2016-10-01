@@ -100,7 +100,10 @@ class HTTPClient(object):
         if file=="":
             file = "/"
 
-        HTTP_request = "GET " + file + " HTTP/1.1\r\nHost: " + parsed_url.hostname + "\r\nAccept: */*\r\nConnection: Close\r\n\r\n"
+        HTTP_request = ("GET " + file + " HTTP/1.1\r\n"
+                        "Host: " + parsed_url.hostname + "\r\n"
+                        "Accept: */*\r\n"
+                        "Connection: Close\r\n\r\n")
 
         self.clientSocket.send(HTTP_request)
 
