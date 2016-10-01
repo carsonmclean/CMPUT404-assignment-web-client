@@ -100,7 +100,7 @@ class HTTPClient(object):
         if file=="":
             file = "/"
 
-        HTTP_request = "GET " + file + " HTTP/1.1\r\nHost:" + parsed_url.hostname + "\r\nAccept: */*\r\nConnection: Close\r\n\r\n"
+        HTTP_request = "GET " + file + " HTTP/1.1\r\nHost: " + parsed_url.hostname + "\r\nAccept: */*\r\nConnection: Close\r\n\r\n"
 
         self.clientSocket.send(HTTP_request)
 
@@ -112,8 +112,43 @@ class HTTPClient(object):
         return HTTPResponse(code,body)
 
     def POST(self, url, args=None):
-        code = 500
-        body = ""
+        # TODO: Fix this. Had trouble with Python "if not" concept
+        if  (url.startswith("http://") or url.startswith("https://")):
+            parsed_url = urlparse(url)
+        else:
+             url = "http://" + url
+             parsed_url = urlparse(url)
+        self.connect(parsed_url.hostname, parsed_url.port)
+
+        file = parsed_url.path
+        if file=="":
+            file = "/"
+
+        if args:
+            encoded_args = urllib.urlencode(args)
+            length = len(encoded_args)
+        else:
+            encoded_args = ""
+            length = 0
+
+        content_type = "application/x-www-form-urlencoded"
+
+        HTTP_request = ("POST " + file + " HTTP/1.1\r\n"
+                        "Host: " + parsed_url.hostname + "\r\n"
+                        "Accept: */*\r\n"
+                        "Content-Length: " + str(length) + "\r\n"
+                        "Content-Type: " + content_type + "\r\n"
+                        "Connection: Close\r\n\r\n")
+        HTTP_request += encoded_args
+        print(HTTP_request)
+
+        self.clientSocket.send(HTTP_request)
+
+        received = self.recvall(self.clientSocket)
+
+        code = self.get_code(received)
+        body = self.get_body(received)
+
         return HTTPResponse(code, body)
 
     def command(self, url, command="GET", args=None):
